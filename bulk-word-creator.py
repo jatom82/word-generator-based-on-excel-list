@@ -1,26 +1,27 @@
-from pathlib import Path
+import os, sys
+from docxtpl import DocxTemplate
+import pandas as pd
+os.chdir(sys.path[0])
 
-import pandas as pd  # pip install pandas openpyxl
-from docxtpl import DocxTemplate  # pip install docxtpl
+class ContractDoc():
 
-base_dir = Path(__file__).parent if "__file__" in locals() else Path.cwd()
-word_template_path = base_dir / "vendor-contract.docx"
-excel_path = base_dir / "contracts-list.xlsx"
-output_dir = base_dir / "OUTPUT"
+    def __init__(self):
+        pass
+    def make_contract(self, template, csv):
+        '''
+        Creates contract file(s) from a template and context files.  
+        Template is a MS Word document and csv is a CSV file
+        containing a list of placeholders labels and values.
 
-# Create output folder for the word documents
-output_dir.mkdir(exist_ok=True)
+        template: MS Word document (docx).
+        csv: CSV file containing the list of placeholders labels as the header, 
+        placeholder values as the fields.
 
-# Convert Excel sheet to pandas dataframe
-df = pd.read_excel(excel_path, sheet_name="Sheet1")
+        Will create a file for each row in the csv file (minus the header).
+        '''
+        placeholders = pd.read_csv(csv)
 
-# Keep only date part YYYY-MM-DD (not the time)
-df["TODAY"] = pd.to_datetime(df["TODAY"]).dt.date
-df["TODAY_IN_ONE_WEEK"] = pd.to_datetime(df["TODAY_IN_ONE_WEEK"]).dt.date
-
-# Iterate over each row in df and render word document
-for record in df.to_dict(orient="records"):
-    doc = DocxTemplate(word_template_path)
-    doc.render(record)
-    output_path = output_dir / f"{record['VENDOR']}-contract.docx"
-    doc.save(output_path)
+        for record in placeholders.to_dict(orient="records"):
+            doc = DocxTemplate(template)
+            doc.render(record)
+            doc.save('test.docx')
